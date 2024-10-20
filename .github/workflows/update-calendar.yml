@@ -7,7 +7,15 @@ on:
 
 jobs:
   update-calendar:
+    name: Update Google Calendar
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        environment: ["Programowanie Gier Komputerowych (991)"]
+
+    environment: ${{ matrix.environment }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
