@@ -31,6 +31,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Check IP
+        run: curl ifconfig.me
+
       - name: Run script
         env:
           GROUP_ID: ${{ secrets.GROUP_ID }}
