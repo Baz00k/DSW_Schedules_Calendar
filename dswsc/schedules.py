@@ -36,15 +36,15 @@ def get_schedule_ical(group_id: str, start_date: str, end_date: str) -> str:
     }
     schedules_ical_url = generate_url(ICAL_URL, {'id': group_id}, {'dO': start_date, 'dD': end_date})
 
-    print(schedules_url, schedules_set_date_range_url, schedules_ical_url, sep='\n')
-
     with requests.Session() as session:
         # The requested date range is stored in the server session
         # Simulate loading the schedules page and setting the date range
         # This is necessary to generate iCal with the correct date range
 
         # Load schedules page to aquire session cookie
-        session.get(schedules_url)
+        response = session.get(schedules_url)
+
+        print(response.status_code, session.cookies)
 
         session_cookie = session.cookies.get_dict().get('ASP.NET_SessionId')
         if session_cookie:
