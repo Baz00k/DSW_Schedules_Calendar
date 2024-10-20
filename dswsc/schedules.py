@@ -44,7 +44,7 @@ def get_schedule_ical(group_id: str, start_date: str, end_date: str) -> str:
         # Load schedules page to aquire session cookie
         response = session.get(schedules_url)
 
-        print(response.status_code, session.cookies)
+        print(response.text)
 
         session_cookie = session.cookies.get_dict().get('ASP.NET_SessionId')
         if session_cookie:
