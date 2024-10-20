@@ -36,6 +36,8 @@ def get_schedule_ical(group_id: str, start_date: str, end_date: str) -> str:
     }
     schedules_ical_url = generate_url(ICAL_URL, {'id': group_id}, {'dO': start_date, 'dD': end_date})
 
+    print(schedules_url, schedules_set_date_range_url, schedules_ical_url, sep='\n')
+
     with requests.Session() as session:
         # The requested date range is stored in the server session
         # Simulate loading the schedules page and setting the date range
