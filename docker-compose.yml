@@ -1,0 +1,9 @@
+services:
+  dswsc:
+    build: .
+    container_name: dswsc
+    environment:
+      - GROUP_ID=${GROUP_ID}
+      - GOOGLE_SERVICE_ACCOUNT_KEY=${GOOGLE_SERVICE_ACCOUNT_KEY}
+      - GOOGLE_CALENDAR_ID=${GOOGLE_CALENDAR_ID}
+    command: python -m dswsc
