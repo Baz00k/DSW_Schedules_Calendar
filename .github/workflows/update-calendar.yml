@@ -8,7 +8,7 @@ on:
 jobs:
   update-calendar:
     name: Update Google Calendar
-    runs-on: ubuntu-latest
+    runs-on: self-hosted # Use self-hosted runner to avoid being blocked by Cloudflare
     strategy:
       matrix:
         environment: ["Programowanie Gier Komputerowych (991)"]
