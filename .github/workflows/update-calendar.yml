@@ -10,7 +10,6 @@ jobs:
     name: Update Google Calendar
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
       matrix:
         environment: ["Programowanie Gier Komputerowych (991)"]
 
