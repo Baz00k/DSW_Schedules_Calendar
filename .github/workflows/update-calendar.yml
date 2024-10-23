@@ -32,8 +32,8 @@ jobs:
 
       - name: Run script
         env:
-          DATE_RANGE: ${{ env.DATE_RANGE }}
-          GROUP_ID: ${{ secrets.GROUP_ID }}
+          DATE_RANGE: ${{ vars.DATE_RANGE }}
+          GROUP_ID: ${{ vars.GROUP_ID }}
           GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
           GOOGLE_CALENDAR_ID: ${{ secrets.GOOGLE_CALENDAR_ID }}
         run: python -m dswsc
