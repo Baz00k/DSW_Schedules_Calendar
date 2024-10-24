@@ -44,7 +44,6 @@ def add_events_to_google_calendar(schedule_ical: str, calendar_id: str):
         if component.name == "VEVENT":
             event = {
                 'summary': str(component.get('summary')),
-                'location': str(component.get('location')),
                 'description': str(component.get('description')),
                 'start': {
                     'dateTime': component.get('dtstart').dt.isoformat(),
