@@ -2,7 +2,7 @@ name: Schedule Google Calendar Update
 
 on:
   schedule:
-    - cron: "5 0 * * *" # Run every day at 00:05 to avoid peak hours
+    - cron: '0 0 * * *' # Run every day at midnight (UTC)
   workflow_dispatch:
 
 jobs:
@@ -11,7 +11,7 @@ jobs:
     runs-on: self-hosted # Use self-hosted runner to avoid being blocked by Cloudflare
     strategy:
       matrix:
-        environment: ["Programowanie Gier Komputerowych (991)"]
+        environment: ['Programowanie Gier Komputerowych (991)']
 
     environment: ${{ matrix.environment }}
 
@@ -22,8 +22,8 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.x"
-          cache: "pip"
+          python-version: '3.x'
+          cache: 'pip'
 
       - name: Install dependencies
         run: |
