@@ -5,6 +5,7 @@ from googleapiclient.discovery import build
 from icalendar import Calendar
 
 from .config import settings
+from .utils import get_offset_from_timezone
 
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 TIMEZONE = 'Europe/Warsaw'
@@ -24,13 +25,27 @@ def clear_event_from_date(calendar_id: str, date: datetime):
     creds = authenticate_google_calendar()
     service = build('calendar', 'v3', credentials=creds)
 
-    date_formatted = date.isoformat() + 'Z'
-    events_result = service.events().list(calendarId=calendar_id, timeMin=date_formatted).execute()
+    offset = get_offset_from_timezone(TIMEZONE)
+    date_formatted = '{date}{sign}{offset:02d}:00'.format(
+        date=date.strftime('%Y-%m-%dT%H:%M:%S'),
+        sign='+' if offset >= 0 else '-',
+        offset=offset
+    )
+
+    events_result = service.events().list(
+        calendarId=calendar_id,
+        timeMin=date_formatted,
+        timeZone=TIMEZONE,
+        singleEvents=True,
+    ).execute()
     events = events_result.get('items', [])
 
+    print(f'Clearing {len(events)} events...')
+    
     for event in events:
         service.events().delete(calendarId=calendar_id, eventId=event['id']).execute()
-        print(f'Event deleted: {event["id"]}')
+    
+    print('Events cleared!')
 
 def add_events_to_google_calendar(schedule_ical: str, calendar_id: str):
     """
@@ -40,6 +55,9 @@ def add_events_to_google_calendar(schedule_ical: str, calendar_id: str):
     service = build('calendar', 'v3', credentials=creds)
 
     cal = Calendar.from_ical(schedule_ical)
+    
+    print(f'Adding {len(cal.subcomponents)} events to Google Calendar...')
+    
     for component in cal.walk():
         if component.name == "VEVENT":
             event = {
@@ -55,5 +73,6 @@ def add_events_to_google_calendar(schedule_ical: str, calendar_id: str):
                 },
             }
 
-            created_event = service.events().insert(calendarId=calendar_id, body=event).execute()
-            print(f'Event created: {created_event.get("htmlLink")}')
+            service.events().insert(calendarId=calendar_id, body=event).execute()
+            
+    print('Events added!')

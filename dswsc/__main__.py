@@ -6,15 +6,14 @@ from .google_calendar import clear_event_from_date, add_events_to_google_calenda
 
 
 def main():
-    start_date = datetime.now()
+    start_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     end_date = (datetime.now() + timedelta(weeks=settings.date_range))
 
     schedule_ical = get_schedule_ical(settings.group_id, start_date.strftime(settings.date_format), end_date.strftime(settings.date_format))
     clear_event_from_date(settings.google_calendar_id, start_date)
     add_events_to_google_calendar(schedule_ical, settings.google_calendar_id)
 
-    print('Successfully added events to Google Calendar!')
-
+    print('Sync complete!')
 
 if __name__ == '__main__':
     main()

@@ -59,5 +59,7 @@ def get_schedule_ical(group_id: str, start_date: str, end_date: str) -> str:
         response = session.get(schedules_ical_url)
         if response.status_code != 200:
             exit('Failed to fetch schedule')
+            
+        print(f'Fetched schedule for {group_id} from {start_date} to {end_date}')
 
         return response.text
