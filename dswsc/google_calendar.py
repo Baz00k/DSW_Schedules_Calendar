@@ -70,6 +70,7 @@ def add_events_to_google_calendar(events: List[EventDetails], calendar_id: str):
                 'timeZone': event_details.timeZone,
             },
             'location': event_details.location,
+            'colorId': event_details.color_id,
         }
 
         service.events().insert(calendarId=calendar_id, body=event).execute()

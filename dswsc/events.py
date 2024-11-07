@@ -40,6 +40,24 @@ class EventDetails(BaseModel):
             description += f'Uwagi: {self.remarks}\n'
         
         return description
+
+    @property
+    def color_id(self) -> str | None:
+        """
+        Determine the colorId based on the type of class and location.
+        """
+        if self.type_of_class.lower().startswith('cw'):
+            if self.location == 'Zdalnie':
+                return '5'  # Ćwiczenia online, "banana" color
+            else:
+                return '2'  # Ćwiczenia stacjonarne, "sage" color
+        elif self.type_of_class.lower().startswith('wyk'):
+            if self.location == 'Zdalnie':
+                return '8'  # Wykład online, "graphite" color
+            else:
+                return '1'  # Wykład stacjonarny, "lavender" color
+
+        return None # Default calendar color
     
     @classmethod
     def from_ical_event(cls, component) -> 'EventDetails':
