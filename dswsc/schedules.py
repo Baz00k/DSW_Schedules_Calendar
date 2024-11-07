@@ -41,6 +41,9 @@ def get_schedule_ical(group_id: str, start_date: str, end_date: str) -> str:
         # Simulate loading the schedules page and setting the date range
         # This is necessary to generate iCal with the correct date range
 
+        # Set Polish language
+        session.headers.update({'Accept-Language': 'pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7'})
+
         # Load schedules page to aquire session cookie
         response = session.get(schedules_url)
 
@@ -60,6 +63,6 @@ def get_schedule_ical(group_id: str, start_date: str, end_date: str) -> str:
         if response.status_code != 200:
             exit('Failed to fetch schedule')
             
-        print(f'Fetched schedule for {group_id} from {start_date} to {end_date}')
+        print(f'Fetched schedule for group with id {group_id} from {start_date} to {end_date}')
 
         return response.text
