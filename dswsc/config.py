@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     google_service_account_key: str = Field(alias='GOOGLE_SERVICE_ACCOUNT_KEY', description='Service account key for Google Calendar API')
 
     date_format: str = "%Y-%m-%d"
+    timezone: str = "Europe/Warsaw"
 
 
 try:

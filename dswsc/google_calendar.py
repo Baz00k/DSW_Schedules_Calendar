@@ -2,13 +2,14 @@ import json
 from datetime import datetime
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
-from icalendar import Calendar
+from typing import List
 
 from .config import settings
 from .utils import get_offset_from_timezone
+from .events import EventDetails
+
 
 SCOPES = ['https://www.googleapis.com/auth/calendar']
-TIMEZONE = 'Europe/Warsaw'
 
 def authenticate_google_calendar():
     """
@@ -25,7 +26,7 @@ def clear_event_from_date(calendar_id: str, date: datetime):
     creds = authenticate_google_calendar()
     service = build('calendar', 'v3', credentials=creds)
 
-    offset = get_offset_from_timezone(TIMEZONE)
+    offset = get_offset_from_timezone(settings.timezone)
     date_formatted = '{date}{sign}{offset:02d}:00'.format(
         date=date.strftime('%Y-%m-%dT%H:%M:%S'),
         sign='+' if offset >= 0 else '-',
@@ -35,7 +36,7 @@ def clear_event_from_date(calendar_id: str, date: datetime):
     events_result = service.events().list(
         calendarId=calendar_id,
         timeMin=date_formatted,
-        timeZone=TIMEZONE,
+        timeZone=settings.timezone,
         singleEvents=True,
     ).execute()
     events = events_result.get('items', [])
@@ -47,32 +48,30 @@ def clear_event_from_date(calendar_id: str, date: datetime):
     
     print('Events cleared!')
 
-def add_events_to_google_calendar(schedule_ical: str, calendar_id: str):
+def add_events_to_google_calendar(events: List[EventDetails], calendar_id: str):
     """
-    Add events from the iCal data to the specified Google Calendar.
+    Add events to the specified Google Calendar.
     """
     creds = authenticate_google_calendar()
     service = build('calendar', 'v3', credentials=creds)
-
-    cal = Calendar.from_ical(schedule_ical)
     
-    print(f'Adding {len(cal.subcomponents)} events to Google Calendar...')
+    print(f'Adding {len(events)} events to Google Calendar...')
     
-    for component in cal.walk():
-        if component.name == "VEVENT":
-            event = {
-                'summary': str(component.get('summary')),
-                'description': str(component.get('description')),
-                'start': {
-                    'dateTime': component.get('dtstart').dt.isoformat(),
-                    'timeZone': TIMEZONE,
-                },
-                'end': {
-                    'dateTime': component.get('dtend').dt.isoformat(),
-                    'timeZone': TIMEZONE,
-                },
-            }
+    for event_details in events:
+        event = {
+            'summary': event_details.summary,
+            'description': event_details.description,
+            'start': {
+                'dateTime': event_details.start.isoformat(),
+                'timeZone': event_details.timeZone,
+            },
+            'end': {
+                'dateTime': event_details.end.isoformat(),
+                'timeZone': event_details.timeZone,
+            },
+            'location': event_details.location,
+        }
 
-            service.events().insert(calendarId=calendar_id, body=event).execute()
+        service.events().insert(calendarId=calendar_id, body=event).execute()
             
     print('Events added!')
