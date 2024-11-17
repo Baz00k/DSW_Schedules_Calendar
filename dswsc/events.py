@@ -22,7 +22,7 @@ class EventDetails(BaseModel):
     location: str = Field(alias='Sala', default='Zdalnie') # If location is not provided, assume it's online
     instructor: str = Field(alias='Prowadzący')
     assessment: str = Field(alias='Forma zaliczenia')
-    remarks: str = Field(alias='Uwagi')
+    remarks: str = Field(alias='Uwagi', default=None)
 
     @property
     def description(self) -> str:
@@ -74,8 +74,12 @@ class EventDetails(BaseModel):
         for line in lines:
             if ':' in line:
                 key, value = line.split(':', 1)
+                
+                if not value or value.isspace():
+                    continue
+                
                 event_details[key.strip()] = value.strip()
-        
+
         return cls(
             summary=summary,
             start=start,

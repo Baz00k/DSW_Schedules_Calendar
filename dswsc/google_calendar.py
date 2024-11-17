@@ -56,7 +56,7 @@ def add_events_to_google_calendar(events: List[EventDetails], calendar_id: str):
     service = build('calendar', 'v3', credentials=creds)
     
     print(f'Adding {len(events)} events to Google Calendar...')
-    
+
     for event_details in events:
         event = {
             'summary': event_details.summary,
