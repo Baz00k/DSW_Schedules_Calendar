@@ -29,10 +29,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: ${{ runner.os }}-schedule-cache-${{ hashFiles('requirements.txt') }}-${{ vars.GROUP_ID }}
+          key: schedule-cache-${{ vars.GROUP_ID }}-${{ hashFiles('.cache') }}
           restore-keys: |
-            ${{ runner.os }}-schedule-cache-${{ vars.GROUP_ID }}
-            ${{ runner.os }}-schedule-cache
+            schedule-cache-${{ vars.GROUP_ID }}-
 
       - name: Install dependencies
         run: |
