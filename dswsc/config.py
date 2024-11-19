@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     google_service_account_key: str = Field(alias='GOOGLE_SERVICE_ACCOUNT_KEY', description='Service account key for Google Calendar API')
 
     cache_dir: str = Field(alias='CACHE_DIR', description='Directory to store the cache', default='.cache')
-    cache_file_template: str = Field(alias='CACHE_FILE_TEMPLATE', description='Template for the cache file', default='cache_{group_id}.json')
+    cache_file_template: str = Field(alias='CACHE_FILE_TEMPLATE', description='Template for the cache file', default='{group_id}')
     ignore_cache: bool = Field(alias='IGNORE_CACHE', description='Ignore the cache and always sync the schedule', default=False)
     
     dry_run: bool = Field(alias='DRY_RUN', description='Do not modify the Google Calendar', default=False)

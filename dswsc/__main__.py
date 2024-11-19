@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from .config import settings
 from .schedules import get_schedule_ical
 from .events import parse_ical_to_events
-from .cache import load_events_cache, save_events_cache, events_to_hash, string_to_hash
+from .cache import load_events_cache, save_events_cache, events_to_hash
 from .google_calendar import clear_event_from_date, add_events_to_google_calendar
 
 
@@ -25,7 +25,7 @@ def main():
             print('Invalid cache, ignoring...')
             cache = None
             
-        if cache and events_to_hash(events) == string_to_hash(cache):
+        if cache and events_to_hash(events) == cache:
             print('No changes in schedule, skipping sync!')
             return
     
