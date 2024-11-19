@@ -8,7 +8,8 @@ on:
 jobs:
   update-calendar:
     name: Update Google Calendar
-    runs-on: self-hosted # Use self-hosted runner to avoid being blocked by Cloudflare
+    # runs-on: self-hosted # Use self-hosted runner to avoid being blocked by Cloudflare
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         environment: ['Programowanie Gier Komputerowych (991)']
@@ -30,9 +31,7 @@ jobs:
         with:
           path: .cache
           key: schedule-cache-${{ vars.GROUP_ID }}-${{ hashFiles(format('.cache/{0}', vars.GROUP_ID)) }}
-          restore-keys: |
-            schedule-cache-${{ vars.GROUP_ID }}-${{ hashFiles(format('.cache/{0}', vars.GROUP_ID)) }}
-            schedule-cache-${{ vars.GROUP_ID }}-
+          restore-keys: schedule-cache-${{ vars.GROUP_ID }}-
 
       - name: Install dependencies
         run: |
