@@ -45,7 +45,7 @@ def get_schedule_ical(group_id: str, start_date: str, end_date: str) -> str:
         session.headers.update({'Accept-Language': 'pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7'})
 
         # Load schedules page to aquire session cookie
-        response = session.get(schedules_url)
+        response = session.get(schedules_url, timeout=10)
 
         session_cookie = session.cookies.get_dict().get('ASP.NET_SessionId')
         if session_cookie:
