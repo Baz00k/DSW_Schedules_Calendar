@@ -17,28 +17,31 @@ class EventDetails(BaseModel):
     end_time: str = Field(alias='Czas do')
     school_hours: str = Field(alias='Liczba godzin')
     subject: str = Field(alias='Przedmiot')
-    form: str = Field(alias='Forma zajęć')
-    type_of_class: str = Field(alias='Grupy')
+    form: str | None = Field(alias='Forma zajęć', default=None)
+    type_of_class: str | None = Field(alias='Grupy', default=None)
     location: str = Field(alias='Sala', default='Zdalnie') # If location is not provided, assume it's online
-    instructor: str = Field(alias='Prowadzący')
-    assessment: str = Field(alias='Forma zaliczenia')
-    remarks: str = Field(alias='Uwagi', default=None)
+    instructor: str | None = Field(alias='Prowadzący', default=None)
+    assessment: str | None = Field(alias='Forma zaliczenia', default=None)
+    remarks: str | None = Field(alias='Uwagi', default=None)
 
     @property
     def description(self) -> str:
         """
         Generate a description for the event.
         """
-        description = (
-            f'{self.subject}\n\n'
-            f'Forma zajęć: {self.type_of_class}\n'
-            f'Prowadzący: {self.instructor}\n'
-            f'Liczba godzin lekcyjnych: {self.school_hours}\n'
-        )
-        
-        if self.remarks:
-            description += f'Uwagi: {self.remarks}\n'
-        
+        description_fields = [
+            ('Forma zajęć', self.type_of_class),
+            ('Prowadzący', self.instructor),
+            ('Liczba godzin lekcyjnych', self.school_hours),
+            ('Uwagi', self.remarks),
+        ]
+
+        description = f'{self.subject}\n\n'
+
+        for key, value in description_fields:
+            if value:
+                description += f'{key}: {value}\n'
+
         return description
 
     @property
@@ -46,6 +49,9 @@ class EventDetails(BaseModel):
         """
         Determine the colorId based on the type of class and location.
         """
+        if self.type_of_class is None:
+            return None # TODO: Check the exact case when type_of_class is None
+
         if self.type_of_class.lower().startswith('cw'):
             if self.location == 'Zdalnie':
                 return '5'  # Ćwiczenia online, "banana" color
@@ -58,7 +64,7 @@ class EventDetails(BaseModel):
                 return '1'  # Wykład stacjonarny, "lavender" color
 
         return None # Default calendar color
-    
+
     @classmethod
     def from_ical_event(cls, component) -> 'EventDetails':
         """
@@ -70,14 +76,14 @@ class EventDetails(BaseModel):
 
         lines = str(component.get('description')).strip().split('\n')
         event_details = {}
-        
+
         for line in lines:
             if ':' in line:
                 key, value = line.split(':', 1)
-                
+
                 if not value or value.isspace():
                     continue
-                
+
                 event_details[key.strip()] = value.strip()
 
         return cls(
@@ -86,7 +92,7 @@ class EventDetails(BaseModel):
             end=end,
             **event_details
         )
-        
+
 
 def parse_ical_to_events(schedule_ical: str) -> List[EventDetails]:
     """
@@ -94,10 +100,10 @@ def parse_ical_to_events(schedule_ical: str) -> List[EventDetails]:
     """
     cal = Calendar.from_ical(schedule_ical)
     events = []
-    
+
     for component in cal.walk():
         if component.name == "VEVENT":
             event_details = EventDetails.from_ical_event(component)
             events.append(event_details)
-    
+
     return events
