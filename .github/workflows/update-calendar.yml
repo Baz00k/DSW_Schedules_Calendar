@@ -36,9 +36,7 @@ jobs:
             schedule-cache-${{ vars.GROUP_ID }}-
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+        run: pip install -r requirements.txt
 
       - name: Run script
         env:
