@@ -8,33 +8,36 @@ from .google_calendar import clear_event_from_date, add_events_to_google_calenda
 
 
 def main():
-    start_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) # Reset time to fetch events for a full day
     end_date = (datetime.now() + timedelta(weeks=settings.date_range))
 
     schedule_ical = get_schedule_ical(settings.group_id, start_date.strftime(settings.date_format), end_date.strftime(settings.date_format))
     events = parse_ical_to_events(schedule_ical)
-    
+
     if len(events) == 0:
         print('Empty schedule, nothing to sync!')
         return
-    
+
+    if settings.dry_run:
+        print('Dry run, skipping sync!')
+        return
+
     if not settings.ignore_cache:
         try:
             cache = load_events_cache(settings.group_id)
         except Exception:
             print('Invalid cache, ignoring...')
             cache = None
-            
+
         if cache and events_to_hash(events) == cache:
             print('No changes in schedule, skipping sync!')
             return
-    
-    if settings.dry_run:
-        print('Dry run, skipping sync!')
-    else:
-        clear_event_from_date(settings.google_calendar_id, start_date)
-        add_events_to_google_calendar(events, settings.google_calendar_id)
-        
+
+    # Replace future events in the calendar, leaving past events untouched
+    clear_event_from_date(settings.google_calendar_id, start_date)
+    add_events_to_google_calendar(events, settings.google_calendar_id)
+
+    # If sync was successful, save the new cache
     save_events_cache(settings.group_id, events)
 
     print('Sync complete!')
