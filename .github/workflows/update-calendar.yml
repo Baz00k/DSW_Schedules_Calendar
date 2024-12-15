@@ -2,7 +2,7 @@ name: Schedule Google Calendar Update
 
 on:
   schedule:
-    - cron: '0 0 * * *' # Run every day at midnight (UTC)
+    - cron: "0 0 * * *" # Run every day at midnight (UTC)
   workflow_dispatch:
 
 jobs:
@@ -11,7 +11,7 @@ jobs:
     runs-on: self-hosted # Use self-hosted runner to avoid being blocked by Cloudflare
     strategy:
       matrix:
-        environment: ['Programowanie Gier Komputerowych (991)']
+        environment: ["Programowanie Gier Komputerowych (991)"]
 
     environment: ${{ matrix.environment }}
 
@@ -22,10 +22,11 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
-          cache: 'pip'
+          python-version: "3.x"
+          cache: "pip"
 
       - name: Restore schedule cache
+        id: restore-cache
         uses: actions/cache/restore@v4
         with:
           path: .cache
@@ -48,6 +49,7 @@ jobs:
         run: python -m dswsc
 
       - name: Save schedule cache
+        if: steps.restore-cache.outputs.cache-hit != 'true' # Save cache only if there wasn't an exact cache match
         uses: actions/cache/save@v4
         with:
           path: .cache
