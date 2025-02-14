@@ -30,38 +30,51 @@ class CalendarService:
 
 def clear_event_from_date(calendar_id: str, date: datetime):
     """
-    Clear all future events from the specified date in the Google Calendar using batch requests.
+    Clear all future events from the specified date in the Google Calendar.
     """
     service = CalendarService.get_instance()
 
     offset = get_offset_from_timezone(settings.timezone)
     date_formatted = f"{date.strftime('%Y-%m-%dT%H:%M:%S')}{'+' if offset >= 0 else '-'}{abs(offset):02d}:00"
 
-    events_result = (
-        service.events()
-        .list(
-            calendarId=calendar_id,
-            timeMin=date_formatted,
-            timeZone=settings.timezone,
-            singleEvents=True,
+    page_token = None
+    total_deleted = 0
+
+    while True:
+        events_result = (
+            service.events()
+            .list(
+                calendarId=calendar_id,
+                timeMin=date_formatted,
+                timeZone=settings.timezone,
+                singleEvents=True,
+                maxResults=250,
+                pageToken=page_token,
+            )
+            .execute()
         )
-        .execute()
-    )
-    events = events_result.get("items", [])
 
-    if not events:
+        events = events_result.get("items", [])
+        if not events:
+            break
+
+        batch = service.new_batch_http_request()
+        for event in events:
+            batch.add(
+                service.events().delete(calendarId=calendar_id, eventId=event["id"])
+            )
+        batch.execute()
+
+        total_deleted += len(events)
+
+        page_token = events_result.get("nextPageToken")
+        if not page_token:
+            break
+
+    if total_deleted > 0:
+        print(f"Successfully cleared {total_deleted} events!")
+    else:
         print("No events to clear")
-        return
-
-    print(f"Clearing {len(events)} events...")
-
-    # Use batch requests to delete events
-    batch = service.new_batch_http_request()
-    for event in events:
-        batch.add(service.events().delete(calendarId=calendar_id, eventId=event["id"]))
-
-    batch.execute()
-    print("Events cleared!")
 
 
 def add_events_to_google_calendar(events: List[EventDetails], calendar_id: str):
