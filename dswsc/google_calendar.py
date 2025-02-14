@@ -35,7 +35,7 @@ def clear_event_from_date(calendar_id: str, date: datetime):
     service = CalendarService.get_instance()
 
     offset = get_offset_from_timezone(settings.timezone)
-    date_formatted = f"{date.strftime('%Y-%m-%dT%H:%M:%S')}{'+' if offset >= 0 else '-'}{abs(offset):02d}:00"
+    date_formatted = f"{date.strftime('%Y-%m-%dT%H:%M:%S')}{offset:+03d}:00"
 
     page_token = None
     total_deleted = 0
