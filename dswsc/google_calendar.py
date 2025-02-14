@@ -9,70 +9,96 @@ from .utils import get_offset_from_timezone
 from .events import EventDetails
 
 
-SCOPES = ['https://www.googleapis.com/auth/calendar']
+SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
-def authenticate_google_calendar():
-    """
-    Authenticate with Google Calendar using service account credentials.
-    """
-    service_account_info = json.loads(settings.google_service_account_key)
-    creds = Credentials.from_service_account_info(service_account_info, scopes=SCOPES)
-    return creds
+
+class CalendarService:
+    _instance = None
+
+    @classmethod
+    def get_instance(cls):
+        """Get or create a Google Calendar service instance."""
+
+        if cls._instance is None:
+            service_account_info = json.loads(settings.google_service_account_key)
+            creds = Credentials.from_service_account_info(
+                service_account_info, scopes=SCOPES
+            )
+            cls._instance = build("calendar", "v3", credentials=creds)
+        return cls._instance
+
 
 def clear_event_from_date(calendar_id: str, date: datetime):
     """
-    Clear all future events from the specified date in the Google Calendar.
+    Clear all future events from the specified date in the Google Calendar using batch requests.
     """
-    creds = authenticate_google_calendar()
-    service = build('calendar', 'v3', credentials=creds)
+    service = CalendarService.get_instance()
 
     offset = get_offset_from_timezone(settings.timezone)
-    date_formatted = '{date}{sign}{offset:02d}:00'.format(
-        date=date.strftime('%Y-%m-%dT%H:%M:%S'),
-        sign='+' if offset >= 0 else '-',
-        offset=offset
+    date_formatted = f"{date.strftime('%Y-%m-%dT%H:%M:%S')}{'+' if offset >= 0 else '-'}{abs(offset):02d}:00"
+
+    events_result = (
+        service.events()
+        .list(
+            calendarId=calendar_id,
+            timeMin=date_formatted,
+            timeZone=settings.timezone,
+            singleEvents=True,
+        )
+        .execute()
     )
+    events = events_result.get("items", [])
 
-    events_result = service.events().list(
-        calendarId=calendar_id,
-        timeMin=date_formatted,
-        timeZone=settings.timezone,
-        singleEvents=True,
-    ).execute()
-    events = events_result.get('items', [])
+    if not events:
+        print("No events to clear")
+        return
 
-    print(f'Clearing {len(events)} events...')
-    
+    print(f"Clearing {len(events)} events...")
+
+    # Use batch requests to delete events
+    batch = service.new_batch_http_request()
     for event in events:
-        service.events().delete(calendarId=calendar_id, eventId=event['id']).execute()
-    
-    print('Events cleared!')
+        batch.add(service.events().delete(calendarId=calendar_id, eventId=event["id"]))
+
+    batch.execute()
+    print("Events cleared!")
+
 
 def add_events_to_google_calendar(events: List[EventDetails], calendar_id: str):
     """
-    Add events to the specified Google Calendar.
+    Add events to the specified Google Calendar using batch requests.
     """
-    creds = authenticate_google_calendar()
-    service = build('calendar', 'v3', credentials=creds)
-    
-    print(f'Adding {len(events)} events to Google Calendar...')
+    service = CalendarService.get_instance()
 
-    for event_details in events:
-        event = {
-            'summary': event_details.summary,
-            'description': event_details.description,
-            'start': {
-                'dateTime': event_details.start.isoformat(),
-                'timeZone': event_details.timeZone,
-            },
-            'end': {
-                'dateTime': event_details.end.isoformat(),
-                'timeZone': event_details.timeZone,
-            },
-            'location': event_details.location,
-            'colorId': event_details.color_id,
-        }
+    if not events:
+        print("No events to add")
+        return
 
-        service.events().insert(calendarId=calendar_id, body=event).execute()
-            
-    print('Events added!')
+    print(f"Adding {len(events)} events to Google Calendar...")
+
+    batch_size = 50
+
+    for i in range(0, len(events), batch_size):
+        batch = service.new_batch_http_request()
+        batch_events = events[i : i + batch_size]
+
+        for event_details in batch_events:
+            event = {
+                "summary": event_details.summary,
+                "description": event_details.description,
+                "start": {
+                    "dateTime": event_details.start.isoformat(),
+                    "timeZone": event_details.timeZone,
+                },
+                "end": {
+                    "dateTime": event_details.end.isoformat(),
+                    "timeZone": event_details.timeZone,
+                },
+                "location": event_details.location,
+                "colorId": event_details.color_id,
+            }
+            batch.add(service.events().insert(calendarId=calendar_id, body=event))
+
+        batch.execute()
+
+    print("Events added!")
